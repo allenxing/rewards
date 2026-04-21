@@ -4,6 +4,9 @@ import { Platform, TouchableOpacity } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { themeStyles } from '../../src/utils/theme';
+
+const t = themeStyles.parent;
 
 export default function ParentTabLayout() {
   const isIOS = Platform.OS === 'ios';
@@ -11,13 +14,13 @@ export default function ParentTabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#C4B5FD',
-        tabBarInactiveTintColor: '#94A3B8',
+        tabBarActiveTintColor: t.brand.primary,
+        tabBarInactiveTintColor: t.text.muted,
         headerShown: true,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: isIOS ? 'rgba(30, 27, 75, 0.7)' : 'rgba(30, 27, 75, 0.8)',
-          borderTopColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: t.bg.nav,
+          borderTopColor: t.border.light,
           borderTopWidth: 1,
           ...(isIOS && {
             position: 'absolute',
@@ -29,12 +32,11 @@ export default function ParentTabLayout() {
           paddingTop: 8,
           paddingBottom: isIOS ? 24 : 12,
           height: isIOS ? 88 : 70,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 24,
-          elevation: 8,
-          backdropFilter: isIOS ? 'blur(20px)' : 'none',
+          shadowColor: t.shadow.dark,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 2,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -46,23 +48,22 @@ export default function ParentTabLayout() {
           marginTop: 4,
         },
         headerStyle: {
-          backgroundColor: 'rgba(30, 27, 75, 0.7)',
-          shadowColor: 'rgba(0, 0, 0, 0.2)',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 8,
-          elevation: 4,
+          backgroundColor: t.bg.nav,
+          shadowColor: t.shadow.dark,
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+          elevation: 2,
           borderBottomWidth: 1,
-          borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
+          borderBottomColor: t.border.light,
         },
         headerTitleStyle: {
-          fontSize: 19,
-          fontWeight: '700',
-          color: 'white',
+          fontSize: 18,
+          fontWeight: '600',
+          color: t.text.primary,
         },
-        headerTintColor: '#C4B5FD',
-        headerShadowVisible: true,
+        headerTintColor: t.brand.primary,
+        headerShadowVisible: false,
       }}>
         <Tabs.Screen
           name="index"
@@ -81,7 +82,7 @@ export default function ParentTabLayout() {
             headerRight: () => (
               <Link href="/parent/tasks/add" asChild>
                 <TouchableOpacity style={{ padding: 8 }}>
-                  <IconSymbol size={24} name="plus" color="#C4B5FD" />
+                  <IconSymbol size={24} name="plus" color={t.brand.primary} />
                 </TouchableOpacity>
               </Link>
             ),
@@ -96,7 +97,7 @@ export default function ParentTabLayout() {
             headerRight: () => (
               <Link href="/parent/wishes/add" asChild>
                 <TouchableOpacity style={{ padding: 8 }}>
-                  <IconSymbol size={24} name="plus" color="#C4B5FD" />
+                  <IconSymbol size={24} name="plus" color={t.brand.primary} />
                 </TouchableOpacity>
               </Link>
             ),
@@ -111,7 +112,7 @@ export default function ParentTabLayout() {
             headerRight: () => (
               <Link href="/parent/children/add" asChild>
                 <TouchableOpacity style={{ padding: 8 }}>
-                  <IconSymbol size={24} name="plus" color="#C4B5FD" />
+                  <IconSymbol size={24} name="plus" color={t.brand.primary} />
                 </TouchableOpacity>
               </Link>
             ),

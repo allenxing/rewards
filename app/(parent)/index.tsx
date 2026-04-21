@@ -122,27 +122,17 @@ export default function ParentHome() {
                 </YStack>
                 <Button
                   size="$3"
-                  bg={t.bg.nav}
+                  bg={t.brand.primary}
                   br="$10"
-                  bw={1}
-                  bc={t.border.lighter}
-                  shadowColor="#000000"
-                  shadowOffset={{ width: 0, height: 4 }}
-                  shadowOpacity={0.2}
-                  shadowRadius={12}
-                  pressStyle={{
-                    scale: 0.97,
-                    shadowOpacity: 0.1,
-                    bg: 'rgba(255, 255, 255, 0.15)',
-                  }}
+                  pressStyle={{ scale: 0.97, bg: '#7C3AED' }}
                   onPress={() => {
                     setMode('child')
                     router.replace('/(child)')
                   }}
                 >
-                  <XStack ai="center" gap="$2" px="$2">
-                    <IconSymbol size={16} name="arrow.left" col={t.text.tertiary} />
-                    <Text col={t.text.tertiary} fontWeight="600" fontSize="$3">孩子模式</Text>
+                  <XStack alignItems="center" gap="$2" px="$2" justifyContent="center">
+                    <IconSymbol size={16} name="arrow.left" color="#FFFFFF" />
+                    <Text color="#FFFFFF" fontWeight="600" fontSize="$3">孩子模式</Text>
                   </XStack>
                 </Button>
               </XStack>
@@ -160,13 +150,13 @@ export default function ParentHome() {
                 shadowOffset={{ width: 0, height: 4 }}
                 shadowOpacity={0.15}
                 shadowRadius={12}
-                pressStyle={{ scale: 0.98, bg: 'rgba(40, 53, 73, 0.7)' }}
+                pressStyle={{ scale: 0.98, bg: 'rgba(139, 92, 246, 0.1)' }}
               >
                 <XStack ai="center" gap="$3" mb="$3">
                   <View w={36} h={36} br={18} bg={t.brand.gradient} ai="center" jc="center" shadowColor={t.shadow.primary} shadowOffset={{width:0, height:2}} shadowOpacity={0.3} shadowRadius={8}>
                     <IconSymbol size={18} name="star.fill" col={t.text.primary} />
                   </View>
-                  <Text fontSize="$3" col="#CBD5E1" fontWeight="500">当前积分</Text>
+                  <Text fontSize="$3" col={t.text.muted} fontWeight="500">当前积分</Text>
                 </XStack>
                 <Text fontSize="$10" fontWeight="800" col={t.text.primary}>{totalPoints || 0}</Text>
                 <Text fontSize="$2" col={t.text.muted} mt="$1">累计奖励积分</Text>
@@ -183,13 +173,13 @@ export default function ParentHome() {
                 shadowOffset={{ width: 0, height: 4 }}
                 shadowOpacity={0.15}
                 shadowRadius={12}
-                pressStyle={{ scale: 0.98, bg: 'rgba(40, 53, 73, 0.7)' }}
+                pressStyle={{ scale: 0.98, bg: 'rgba(139, 92, 246, 0.1)' }}
               >
                 <XStack ai="center" gap="$3" mb="$3">
                   <View w={36} h={36} br={18} bg="linear-gradient(135deg, #10B981 0%, #059669 100%)" ai="center" jc="center" shadowColor="#10B981" shadowOffset={{width:0, height:2}} shadowOpacity={0.3} shadowRadius={8}>
                     <IconSymbol size={18} name="clock.fill" col={t.text.primary} />
                   </View>
-                  <Text fontSize="$3" col="#CBD5E1" fontWeight="500">待审核</Text>
+                  <Text fontSize="$3" col={t.text.muted} fontWeight="500">待审核</Text>
                 </XStack>
                 <Text fontSize="$10" fontWeight="800" col="#34D399">{pendingSubmissions.length}</Text>
                 <Text fontSize="$2" col="#34D399" mt="$1">等待处理任务</Text>
@@ -263,7 +253,7 @@ export default function ParentHome() {
                   shadowRadius={12}
                   pressStyle={{
                     scale: 0.96,
-                    bg: 'rgba(40, 53, 73, 0.7)',
+                    bg: 'rgba(16, 185, 129, 0.2)',
                     shadowOpacity: 0.2,
                   }}
                   onPress={() => {
@@ -295,7 +285,7 @@ export default function ParentHome() {
                   shadowRadius={12}
                   pressStyle={{
                     scale: 0.96,
-                    bg: 'rgba(40, 53, 73, 0.7)',
+                    bg: 'rgba(239, 68, 68, 0.15)',
                     shadowOpacity: 0.2,
                   }}
                   onPress={() => {
@@ -331,7 +321,7 @@ export default function ParentHome() {
                   shadowRadius={12}
                   pressStyle={{
                     scale: 0.96,
-                    bg: 'rgba(40, 53, 73, 0.7)',
+                    bg: 'rgba(245, 158, 11, 0.15)',
                     shadowOpacity: 0.2,
                   }}
                   onPress={() => {

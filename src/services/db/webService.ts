@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Platform } from 'react-native'
-import type { Child } from '../../types'
-import type { Task } from '../../types'
-import type { Wish } from '../../types'
+import type { Child , Task , Wish } from '../../types'
 
 const isWeb = Platform.OS === 'web'
 
@@ -143,6 +141,15 @@ export const taskService = {
     return list
   },
 
+  getActiveTasks: async (childId?: number): Promise<Task[]> => {
+    const list = await getAllData<any>('tasks')
+    let filtered = list.filter((t: any) => t.is_active === 1)
+    if (childId) {
+      filtered = filtered.filter((t: any) => t.child_id === 0 || t.child_id === childId)
+    }
+    return filtered
+  },
+
   getById: async (id: number): Promise<Task | null> => {
     const list = await getAllData<any>('tasks')
     return list.find(t => t.id === id) || null
@@ -177,6 +184,77 @@ export const taskService = {
     const filtered = list.filter(t => t.id !== id)
     await saveData('tasks', filtered)
   },
+
+  submitTask: async (taskId: number, childId: number, photo?: string): Promise<number> => {
+    const list = await getAllData<any>('task_submissions')
+    const id = autoIncrement.points_log++
+    await saveCounter('points_log', autoIncrement.points_log)
+    const submission = {
+      id,
+      task_id: taskId,
+      child_id: childId,
+      photo: photo || null,
+      status: 'pending',
+      submit_time: new Date().toISOString(),
+      review_time: null,
+      review_note: null,
+    }
+    list.push(submission)
+    await saveData('task_submissions', list)
+    return id
+  },
+
+  getPendingSubmissions: async (childId?: number): Promise<any[]> => {
+    const submissions = await getAllData<any>('task_submissions')
+    const tasks = await getAllData<any>('tasks')
+    let filtered = submissions.filter(s => s.status === 'pending')
+    
+    if (childId) {
+      filtered = filtered.filter(s => s.child_id === childId)
+    }
+    
+    return filtered.map(s => {
+      const task = tasks.find(t => t.id === s.task_id)
+      return {
+        ...s,
+        task_name: task?.name || '',
+        point: task?.point || 0,
+        icon: task?.icon || '',
+      }
+    }).sort((a, b) => new Date(b.submit_time).getTime() - new Date(a.submit_time).getTime())
+  },
+
+  reviewSubmission: async (submissionId: number, status: 'approved' | 'rejected', reviewNote?: string): Promise<void> => {
+    const list = await getAllData<any>('task_submissions')
+    const index = list.findIndex(s => s.id === submissionId)
+    if (index >= 0) {
+      list[index] = {
+        ...list[index],
+        status,
+        review_time: new Date().toISOString(),
+        review_note: reviewNote || null,
+      }
+      await saveData('task_submissions', list)
+    }
+  },
+
+  getSubmissionsByChildId: async (childId: number, limit = 20): Promise<any[]> => {
+    const submissions = await getAllData<any>('task_submissions')
+    const tasks = await getAllData<any>('tasks')
+    
+    return submissions
+      .filter(s => s.child_id === childId)
+      .map(s => {
+        const task = tasks.find(t => t.id === s.task_id)
+        return {
+          ...s,
+          task_name: task?.name || '',
+          point: task?.point || 0,
+        }
+      })
+      .sort((a, b) => new Date(b.submit_time).getTime() - new Date(a.submit_time).getTime())
+      .slice(0, limit)
+  },
 }
 
 export const wishService = {
@@ -185,7 +263,28 @@ export const wishService = {
     if (childId) {
       list = list.filter(w => w.child_id === 0 || w.child_id === childId)
     }
-    return list
+    return list.sort((a, b) => {
+      if (a.is_main_goal !== b.is_main_goal) {
+        return a.is_main_goal ? -1 : 1
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  },
+
+  getWishes: async (childId?: number, status?: Wish['status']): Promise<Wish[]> => {
+    let list = await getAllData<Wish>('wishes')
+    if (childId) {
+      list = list.filter(w => w.child_id === 0 || w.child_id === childId)
+    }
+    if (status) {
+      list = list.filter(w => w.status === status)
+    }
+    return list.sort((a, b) => {
+      if (a.is_main_goal !== b.is_main_goal) {
+        return a.is_main_goal ? -1 : 1
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
   },
 
   getById: async (id: number): Promise<Wish | null> => {
@@ -221,6 +320,43 @@ export const wishService = {
     const list = await getAllData<any>('wishes')
     const filtered = list.filter(w => w.id !== id)
     await saveData('wishes', filtered)
+  },
+
+  exchange: async (id: number, childId: number): Promise<boolean> => {
+    const list = await getAllData<any>('wishes')
+    const wishIndex = list.findIndex(w => w.id === id)
+    
+    if (wishIndex === -1) return false
+    
+    const wish = list[wishIndex]
+    if (wish.status !== 'active') return false
+    
+    const totalPoints = await pointService.getTotal(childId)
+    if (totalPoints < wish.target_point) return false
+    
+    try {
+      await pointService.addPoints(childId, -wish.target_point, `兑换愿望: ${wish.name}`, 'exchange', id)
+      
+      list[wishIndex] = { ...wish, status: 'exchanged' as Wish['status'], updated_at: new Date().toISOString() }
+      await saveData('wishes', list)
+      
+      return true
+    } catch (error) {
+      console.error('兑换愿望失败:', error)
+      return false
+    }
+  },
+
+  setMainGoal: async (id: number): Promise<void> => {
+    const list = await getAllData<any>('wishes')
+    for (let i = 0; i < list.length; i++) {
+      list[i] = {
+        ...list[i],
+        is_main_goal: list[i].id === id ? 1 : 0,
+        updated_at: new Date().toISOString(),
+      }
+    }
+    await saveData('wishes', list)
   },
 }
 

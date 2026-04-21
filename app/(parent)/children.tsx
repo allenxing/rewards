@@ -137,7 +137,7 @@ export default function ChildrenManagement() {
                           shadowOffset={{ width: 0, height: 4 }}
                           shadowOpacity={0.2}
                           shadowRadius={12}
-                          pressStyle={{ scale: 0.97, bg: 'rgba(255, 255, 255, 0.15)' }}
+                          pressStyle={{ scale: 0.97, bg: 'rgba(139, 92, 246, 0.1)' }}
                           onPress={() => setCurrentChild(child)}
                         >
                           <Text color="white" fontSize="$3" fontWeight="600">切换</Text>
@@ -153,7 +153,7 @@ export default function ChildrenManagement() {
                         shadowOffset={{ width: 0, height: 4 }}
                         shadowOpacity={0.2}
                         shadowRadius={12}
-                        pressStyle={{ scale: 0.97, bg: 'rgba(255, 255, 255, 0.15)' }}
+                        pressStyle={{ scale: 0.97, bg: 'rgba(139, 92, 246, 0.1)' }}
                         onPress={() => {
                           if (children.length > 1) {
                             deleteChild(child.id)

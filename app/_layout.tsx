@@ -91,9 +91,10 @@ export default function RootLayout() {
                 presentation: 'modal', 
                 headerShown: true, 
                 title: '添加任务',
-                headerStyle: { backgroundColor: 'rgba(30, 27, 75, 0.7)' },
+                headerStyle: { backgroundColor: '#0F172A' },
                 headerTintColor: '#C4B5FD',
-                headerTitleStyle: { color: 'white', fontWeight: '700' }
+                headerTitleStyle: { color: '#FFFFFF', fontWeight: '600' },
+                contentStyle: { backgroundColor: '#0F172A' }
               }} 
             />
             <Stack.Screen 
@@ -102,9 +103,10 @@ export default function RootLayout() {
                 presentation: 'modal', 
                 headerShown: true, 
                 title: '添加愿望',
-                headerStyle: { backgroundColor: 'rgba(30, 27, 75, 0.7)' },
-                headerTintColor: '#C4B5FD',
-                headerTitleStyle: { color: 'white', fontWeight: '700' }
+                headerStyle: { backgroundColor: '#0F172A' },
+                headerTintColor: '#FBBF24',
+                headerTitleStyle: { color: '#FFFFFF', fontWeight: '600' },
+                contentStyle: { backgroundColor: '#0F172A' }
               }} 
             />
             <Stack.Screen 
@@ -113,13 +115,14 @@ export default function RootLayout() {
                 presentation: 'modal', 
                 headerShown: true, 
                 title: '添加孩子',
-                headerStyle: { backgroundColor: 'rgba(30, 27, 75, 0.7)' },
+                headerStyle: { backgroundColor: '#0F172A' },
                 headerTintColor: '#C4B5FD',
-                headerTitleStyle: { color: 'white', fontWeight: '700' }
+                headerTitleStyle: { color: '#FFFFFF', fontWeight: '600' },
+                contentStyle: { backgroundColor: '#0F172A' }
               }} 
             />
           </Stack>
-          <StatusBar style={currentMode === 'parent' ? 'dark' : 'light'} />
+          <StatusBar style="dark" />
         </ThemeProvider>
       </PortalProvider>
     </TamaguiProvider>

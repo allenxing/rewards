@@ -1,16 +1,22 @@
 // @ts-nocheck
-import { View, Text, ScrollView, YStack, XStack, Button, Switch, Input } from 'tamagui'
-import { useState } from 'react'
+import { View, Text, ScrollView, YStack, XStack, Button, Input } from 'tamagui'
+import { useState, useEffect } from 'react'
 import { router } from 'expo-router'
 import { useStore } from '../../../src/store'
-import taskService from '../../../src/services/db/taskService'
-import { themeStyles } from '../../../src/utils/theme'
+import { KeyboardAvoidingView, Platform, SafeAreaView, Keyboard, Switch } from 'react-native'
 
-const t = themeStyles.parent
+const BACKGROUND_COLOR = '#0F172A'
+const CARD_COLOR = '#1E293B'
+const BORDER_COLOR = '#334155'
+const TEXT_COLOR = '#FFFFFF'
+const PLACEHOLDER_COLOR = '#94A3B8'
+const PRIMARY_COLOR = '#8B5CF6'
 
 export default function AddTask() {
   const currentChild = useStore(state => state.currentChild)
+  const createTask = useStore(state => state.createTask)
   const [loading, setLoading] = useState(false)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   const [taskName, setTaskName] = useState('')
   const [taskPoint, setTaskPoint] = useState('')
@@ -19,15 +25,43 @@ export default function AddTask() {
   const [requirePhoto, setRequirePhoto] = useState(false)
   const [autoApprove, setAutoApprove] = useState(false)
 
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardOpen(true)
+    })
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardOpen(false)
+    })
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
+    }
+  }, [])
+
   const handleCreateTask = async () => {
-    if (!taskName.trim() || !taskPoint || !currentChild) return
+    if (!currentChild) {
+      alert('请先选择一个孩子')
+      return
+    }
+    
+    if (!taskName.trim()) {
+      alert('请输入任务名称')
+      return
+    }
+    
+    const points = Number(taskPoint)
+    if (!taskPoint || isNaN(points) || points <= 0 || points > 100) {
+      alert('请输入有效的分值（1-100）')
+      return
+    }
     
     try {
       setLoading(true)
-      await taskService.create({
+      await createTask({
         name: taskName.trim(),
         icon: 'star.fill',
-        point: Number(taskPoint),
+        point: points,
         type: taskType,
         category: taskCategory,
         age_group: 'all',
@@ -37,6 +71,7 @@ export default function AddTask() {
         child_id: currentChild.id
       })
       
+      alert('任务创建成功！')
       router.back()
     } catch (error) {
       console.error('创建任务失败:', error)
@@ -46,186 +81,220 @@ export default function AddTask() {
     }
   }
 
+  const handleNameChange = (text: string) => {
+    setTaskName(text)
+  }
+
+  const handlePointChange = (text: string) => {
+    const numericText = text.replace(/[^0-9]/g, '')
+    const num = parseInt(numericText, 10)
+    if (num <= 100 || text === '') {
+      setTaskPoint(numericText)
+    }
+  }
+
   return (
-    <View flex={1} bg={t.background}>
-      <ScrollView flex={1} px="$4" paddingBottom={120} showsVerticalScrollIndicator={false}>
-        <YStack gap="$6">
-          <Text fontSize="$6" fontWeight="700" color="white">新建任务</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: BACKGROUND_COLOR }}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      >
+        <ScrollView 
+          style={{ flex: 1 }}
+          contentContainerStyle={{ 
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: keyboardOpen ? 200 : 60,
+            flexGrow: 1 
+          }}
+        >
+          <YStack style={{ gap: 24, flex: 1 }}>
 
-          <YStack gap="$4">
-            <Text fontSize="$4" fontWeight="600" color="white">任务名称</Text>
-            <Input
-              placeholder="如：整理床铺"
-              value={taskName}
-              onChangeText={setTaskName}
-              bg={t.bg.card}
-              bc="rgba(139, 92, 246, 0.3)"
-              bw={1}
-              br="$4"
-              p="$4"
-              fontSize="$4"
-              color="white"
-              placeholderTextColor="#94A3B8"
-            />
-          </YStack>
+            <YStack style={{ gap: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: TEXT_COLOR }}>任务名称</Text>
+              <Input
+                placeholder="如：整理床铺"
+                value={taskName}
+                onChangeText={handleNameChange}
+                style={{
+                  backgroundColor: CARD_COLOR,
+                  borderColor: BORDER_COLOR,
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  height: 56,
+                  fontSize: 18,
+                  color: TEXT_COLOR,
+                }}
+                placeholderTextColor={PLACEHOLDER_COLOR}
+                maxLength={50}
+                returnKeyType="next"
+                autoCapitalize="sentences"
+                selectionColor={PRIMARY_COLOR}
+                caretColor={TEXT_COLOR}
+              />
+            </YStack>
 
-          <YStack gap="$4">
-            <Text fontSize="$4" fontWeight="600" color="white">任务分值 (1-100分)</Text>
-            <Input
-              placeholder="输入分值"
-              value={taskPoint}
-              onChangeText={setTaskPoint}
-              keyboardType="numeric"
-              bg={t.bg.card}
-              bc="rgba(139, 92, 246, 0.3)"
-              bw={1}
-              br="$4"
-              p="$4"
-              fontSize="$4"
-              color="white"
-              placeholderTextColor="#94A3B8"
-            />
-          </YStack>
+            <YStack style={{ gap: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: TEXT_COLOR }}>任务分值 (1-100分)</Text>
+              <Input
+                placeholder="输入分值"
+                value={taskPoint}
+                onChangeText={handlePointChange}
+                keyboardType="numeric"
+                style={{
+                  backgroundColor: CARD_COLOR,
+                  borderColor: BORDER_COLOR,
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  height: 56,
+                  fontSize: 18,
+                  color: TEXT_COLOR,
+                }}
+                placeholderTextColor={PLACEHOLDER_COLOR}
+                maxLength={3}
+                returnKeyType="done"
+                selectionColor={PRIMARY_COLOR}
+                caretColor={TEXT_COLOR}
+              />
+            </YStack>
 
-          <YStack gap="$4">
-            <Text fontSize="$4" fontWeight="600" color="white">任务类型</Text>
-            <XStack gap="$3">
-              <Button
-                size="$4"
-                flex={1}
-                bg={taskType === 'daily' ? t.brand.gradient : t.bg.card}
-                br="$4"
-                shadowColor={taskType === 'daily' ? "#8B5CF6" : "transparent"}
-                shadowOffset={{ width: 0, height: 4 }}
-                shadowOpacity={0.3}
-                shadowRadius={12}
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskType('daily')}
-              >
-                <Text color="white" fontWeight="600" fontSize="$4">每日</Text>
-              </Button>
-              <Button
-                size="$4"
-                flex={1}
-                bg={taskType === 'weekly' ? t.brand.gradient : t.bg.card}
-                bw={1}
-                bc="rgba(139, 92, 246, 0.3)"
-                br="$4"
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskType('weekly')}
-              >
-                <Text color="#CBD5E1" fontWeight="600" fontSize="$4">每周</Text>
-              </Button>
-              <Button
-                size="$4"
-                flex={1}
-                bg={taskType === 'one_time' ? t.brand.gradient : t.bg.card}
-                bw={1}
-                bc="rgba(139, 92, 246, 0.3)"
-                br="$4"
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskType('one_time')}
-              >
-                <Text color="#CBD5E1" fontWeight="600" fontSize="$4">一次性</Text>
-              </Button>
-            </XStack>
-          </YStack>
-
-          <YStack gap="$4">
-            <Text fontSize="$4" fontWeight="600" color="white">任务分类</Text>
-            <XStack gap="$3" flexWrap="wrap">
-              <Button
-                size="$3"
-                bg={taskCategory === 'life' ? t.brand.gradient : t.bg.card}
-                br="$4"
-                shadowColor={taskCategory === 'life' ? "#8B5CF6" : "transparent"}
-                shadowOffset={{ width: 0, height: 4 }}
-                shadowOpacity={0.3}
-                shadowRadius={12}
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskCategory('life')}
-              >
-                <Text color="white" fontSize="$3" fontWeight="600">生活自理</Text>
-              </Button>
-              <Button
-                size="$3"
-                bg={taskCategory === 'study' ? t.brand.gradient : t.bg.card}
-                bw={1}
-                bc="rgba(139, 92, 246, 0.3)"
-                br="$4"
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskCategory('study')}
-              >
-                <Text color="#CBD5E1" fontSize="$3" fontWeight="600">学习成长</Text>
-              </Button>
-              <Button
-                size="$3"
-                bg={taskCategory === 'housework' ? t.brand.gradient : t.bg.card}
-                bw={1}
-                bc="rgba(139, 92, 246, 0.3)"
-                br="$4"
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskCategory('housework')}
-              >
-                <Text color="#CBD5E1" fontSize="$3" fontWeight="600">家务劳动</Text>
-              </Button>
-              <Button
-                size="$3"
-                bg={taskCategory === 'character' ? t.brand.gradient : t.bg.card}
-                bw={1}
-                bc="rgba(139, 92, 246, 0.3)"
-                br="$4"
-                pressStyle={{ scale: 0.97 }}
-                onPress={() => setTaskCategory('character')}
-              >
-                <Text color="#CBD5E1" fontSize="$3" fontWeight="600">品格培养</Text>
-              </Button>
-            </XStack>
-          </YStack>
-
-          <YStack gap="$4">
-            <Text fontSize="$4" fontWeight="600" color="white">高级选项</Text>
-            <XStack gap="$6">
-              <XStack gap="$3" alignItems="center">
-                <Switch 
-                  checked={requirePhoto} 
-                  onCheckedChange={setRequirePhoto}
-                  size="$4" 
-                  backgroundColor={requirePhoto ? "rgba(16, 185, 129, 0.8)" : "rgba(148, 163, 184, 0.3)"} 
-                  thumbColor="white" 
-                />
-                <Text fontSize="$4" fontWeight="500" color="white">需拍照证明</Text>
+            <YStack style={{ gap: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: TEXT_COLOR }}>任务类型</Text>
+              <XStack style={{ gap: 12 }}>
+                <Button
+                  style={{
+                    flex: 1,
+                    backgroundColor: taskType === 'daily' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderRadius: 16,
+                  }}
+                  onPress={() => setTaskType('daily')}
+                >
+                  <Text style={{ color: taskType === 'daily' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>每日</Text>
+                </Button>
+                <Button
+                  style={{
+                    flex: 1,
+                    backgroundColor: taskType === 'weekly' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderColor: BORDER_COLOR,
+                    borderWidth: 1,
+                    borderRadius: 16,
+                  }}
+                  onPress={() => setTaskType('weekly')}
+                >
+                  <Text style={{ color: taskType === 'weekly' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>每周</Text>
+                </Button>
+                <Button
+                  style={{
+                    flex: 1,
+                    backgroundColor: taskType === 'one_time' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderColor: BORDER_COLOR,
+                    borderWidth: 1,
+                    borderRadius: 16,
+                  }}
+                  onPress={() => setTaskType('one_time')}
+                >
+                  <Text style={{ color: taskType === 'one_time' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>一次性</Text>
+                </Button>
               </XStack>
-              <XStack gap="$3" alignItems="center">
-                <Switch 
-                  checked={autoApprove} 
-                  onCheckedChange={setAutoApprove}
-                  size="$4" 
-                  backgroundColor={autoApprove ? "rgba(139, 92, 246, 0.8)" : "rgba(148, 163, 184, 0.3)"} 
-                  thumbColor="white" 
-                />
-                <Text fontSize="$4" fontWeight="500" color="white">自动通过</Text>
-              </XStack>
-            </XStack>
-          </YStack>
+            </YStack>
 
-          <Button
-            bg="linear-gradient(135deg, #10B981 0%, #059669 100%)"
-            marginTop="$4"
-            br="$6"
-            py="$4"
-            shadowColor="#10B981"
-            shadowOffset={{ width: 0, height: 8 }}
-            shadowOpacity={0.4}
-            shadowRadius={20}
-            pressStyle={{ scale: 0.97 }}
-            onPress={handleCreateTask}
-            disabled={!taskName.trim() || !taskPoint || loading}
-          >
-            <Text color="white" fontWeight="700" fontSize="$5">{loading ? '保存中...' : '保存任务'}</Text>
-          </Button>
-        </YStack>
-      </ScrollView>
-    </View>
+            <YStack style={{ gap: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: TEXT_COLOR }}>任务分类</Text>
+              <XStack style={{ gap: 12, flexWrap: 'wrap' }}>
+                <Button
+                  style={{
+                    backgroundColor: taskCategory === 'life' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                  }}
+                  onPress={() => setTaskCategory('life')}
+                >
+                  <Text style={{ color: taskCategory === 'life' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>生活自理</Text>
+                </Button>
+                <Button
+                  style={{
+                    backgroundColor: taskCategory === 'study' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderColor: BORDER_COLOR,
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                  }}
+                  onPress={() => setTaskCategory('study')}
+                >
+                  <Text style={{ color: taskCategory === 'study' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>学习成长</Text>
+                </Button>
+                <Button
+                  style={{
+                    backgroundColor: taskCategory === 'housework' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderColor: BORDER_COLOR,
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                  }}
+                  onPress={() => setTaskCategory('housework')}
+                >
+                  <Text style={{ color: taskCategory === 'housework' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>家务劳动</Text>
+                </Button>
+                <Button
+                  style={{
+                    backgroundColor: taskCategory === 'character' ? 'linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)' : CARD_COLOR,
+                    borderColor: BORDER_COLOR,
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                  }}
+                  onPress={() => setTaskCategory('character')}
+                >
+                  <Text style={{ color: taskCategory === 'character' ? TEXT_COLOR : PLACEHOLDER_COLOR, fontWeight: '600', fontSize: 16 }}>品格培养</Text>
+                </Button>
+              </XStack>
+            </YStack>
+
+            <YStack style={{ gap: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: TEXT_COLOR }}>高级选项</Text>
+              <XStack style={{ gap: 24, flexWrap: 'wrap' }}>
+                <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+                  <Switch 
+                    value={requirePhoto}
+                    onValueChange={setRequirePhoto}
+                    trackColor={{ false: '#4B5563', true: '#10B981' }}
+                    thumbColor={requirePhoto ? '#FFFFFF' : '#94A3B8'}
+                  />
+                  <Text style={{ fontSize: 18, fontWeight: '500', color: TEXT_COLOR }}>需拍照证明</Text>
+                </View>
+                <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+                  <Switch 
+                    value={autoApprove}
+                    onValueChange={setAutoApprove}
+                    trackColor={{ false: '#4B5563', true: '#8B5CF6' }}
+                    thumbColor={autoApprove ? '#FFFFFF' : '#94A3B8'}
+                  />
+                  <Text style={{ fontSize: 18, fontWeight: '500', color: TEXT_COLOR }}>自动通过</Text>
+                </View>
+              </XStack>
+            </YStack>
+
+            <View style={{ marginBottom: keyboardOpen ? 100 : 20 }}>
+              <Button
+                style={{
+                  backgroundColor: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  borderRadius: 24,
+                  height: 56,
+                  shadowColor: '#10B981',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 20,
+                }}
+                onPress={handleCreateTask}
+                disabled={!taskName.trim() || !taskPoint || loading}
+              >
+                <Text style={{ color: TEXT_COLOR, fontWeight: '700', fontSize: 18 }}>{loading ? '保存中...' : '保存任务'}</Text>
+              </Button>
+            </View>
+          </YStack>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }

@@ -36,6 +36,10 @@ const MAPPING = {
   'clock.fill': 'schedule',
   'minus': 'remove',
   'gearshape.fill': 'settings',
+  'trash': 'delete',
+  'line.3.horizontal.decrease.circle': 'filter-list',
+  'lock': 'lock',
+  'lock.open': 'lock-open',
 } as IconMapping;
 
 /**

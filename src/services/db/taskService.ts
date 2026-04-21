@@ -2,6 +2,21 @@ import { db } from './index'
 import type { Task, TaskSubmission } from '../../types'
 
 export const taskService = {
+  // 获取所有任务（不分状态）
+  getAll: async (childId?: number) => {
+    if (!db) return []
+    let query = 'SELECT * FROM tasks'
+    const params: any[] = []
+
+    if (childId) {
+      query += ' WHERE (child_id = 0 OR child_id = ?)'
+      params.push(childId)
+    }
+
+    const result = await db.getAllAsync<Task>(query, params)
+    return result
+  },
+
   // 获取所有激活的任务
   getActiveTasks: async (childId?: number) => {
     if (!db) return []
